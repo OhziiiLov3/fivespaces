@@ -46,10 +46,45 @@ exports.getAllBoards = async (req, res)=>{
 exports.getBoardById = async (req, res)=>{
 try {
     const {id} = req.params;
-
     const board = await prisma.board.findUnique({where: {board_id: parseInt(id)}});
-
+    if(!board) return res.status(404).json({error: 'Board not found'})
+    res.json(board);
 } catch (error) {
-    
+    res.status(500).json({ error: 'Failed to fetch board' });
 }
 };
+
+// PUT -> /boards/:id - update board by id 
+exports.updateBoard = async (req, res)=>{
+    const {id} = req.params;
+
+    const {title, category, stickerUrl} = req.body;
+
+    try {
+        const updatedBoard = await prisma.board.update({
+                where:{ board_id:  parseInt(id)},
+                data: {title, category, stickerUrl}
+        });
+        console.log(updatedBoard)
+        res.status(200).json(updatedBoard);
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ error: 'Failed to update board' });
+    }
+    };
+
+// DELETE -> /boards/:id - delete board by id 
+exports.deleteBoard = async (req, res)=>{
+    const {id} = req.params;
+     try {
+        const deletePet = await prisma.board.delete({
+            where:{board_id: parseInt(id)}
+        });
+        res.json({
+            message: 'Board successfully deleted',
+            deletePet
+        })
+     } catch (error) {
+        res.status(500).json({ error: 'Failed to delete board' });
+     }
+    };
