@@ -1,13 +1,14 @@
 const experss = require("express");
 const { getAllBoards, createBoard, getBoardById, updateBoard, deleteBoard } = require("../controllers/boardController");
+const authenticateToken = require("../middleware/authMiddleware");
 const router = experss.Router();
 
 
 
-router.post('/', createBoard);
+router.post('/', authenticateToken , createBoard);
 router.get('/', getAllBoards);
 router.get('/:id', getBoardById);
-router.put('/:id', updateBoard);
-router.delete('/:id', deleteBoard);
+router.put('/:id',authenticateToken, updateBoard);
+router.delete('/:id',authenticateToken, deleteBoard);
 
 module.exports = router;

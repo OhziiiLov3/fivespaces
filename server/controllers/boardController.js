@@ -6,14 +6,14 @@ const prisma = new PrismaClient();
 // POST -> /boards - create a board
 exports.createBoard = async (req, res)=>{
 try {
-    const {authorId , title, category, stickerUrl} = req.body;
+    const { title, category, stickerUrl} = req.body;
     if(!title || !category) return res.status(400).json({error: 'Title and category are required'});
 
     const board = await prisma.board.create({
         data:{
             author: {
                 connect:{
-                    user_id: authorId
+                    user_id: req.user.user_id
                 }
             },
             title,
@@ -61,11 +61,21 @@ exports.updateBoard = async (req, res)=>{
     const {title, category, stickerUrl} = req.body;
 
     try {
+        // ensures only the user who created the board can update
+        const board = await prisma.board.findUnique({
+            where: { board_id: parseInt(id) },
+          });
+      
+          if (!board || board.authorId !== req.user.user_id) {
+            return res.status(403).json({ error: "Not authorized to update this board" });
+          }
+      
         const updatedBoard = await prisma.board.update({
                 where:{ board_id:  parseInt(id)},
                 data: {title, category, stickerUrl}
         });
-        console.log(updatedBoard)
+
+   
         res.status(200).json(updatedBoard);
     } catch (error) {
         console.log(error)
@@ -77,6 +87,15 @@ exports.updateBoard = async (req, res)=>{
 exports.deleteBoard = async (req, res)=>{
     const {id} = req.params;
      try {
+         // ensures only the user who created the board can delete
+        const board = await prisma.board.findUnique({
+            where: { board_id: parseInt(id) },
+          });
+      
+          if (!board || board.authorId !== req.user.user_id) {
+            return res.status(403).json({ error: "Not authorized to delete this board" });
+          }
+      
         const deletePet = await prisma.board.delete({
             where:{board_id: parseInt(id)}
         });
